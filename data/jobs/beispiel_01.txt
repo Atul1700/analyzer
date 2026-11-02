@@ -1,0 +1,19 @@
+AI Engineer (m/w/d) – Wien / Remote möglich
+
+Wir sind ein wachsendes Softwareunternehmen und suchen Verstärkung für unser KI-Team.
+
+Deine Aufgaben:
+- Entwicklung von LLM-basierten Anwendungen (RAG, Chatbots, Agents)
+- Anbindung von LLM-APIs an bestehende Backend-Systeme
+- Aufbau von Evaluations- und Monitoring-Pipelines
+
+Dein Profil:
+- Sehr gute Kenntnisse in Python
+- Erfahrung mit LLM-APIs (OpenAI, Anthropic o. ä.)
+- Erfahrung mit Vektordatenbanken (z. B. pgvector, Qdrant)
+- Kenntnisse in Docker und CI/CD
+- Von Vorteil: Erfahrung mit Azure, LangChain oder LlamaIndex
+- Gute Deutsch- und Englischkenntnisse
+
+Wir bieten: Homeoffice bis zu 4 Tage pro Woche, Weiterbildungsbudget.
+Hinweis: Dies ist eine erfundene Beispielanzeige zum Testen. Ersetze sie durch echte Anzeigen.
