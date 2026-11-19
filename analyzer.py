@@ -5,7 +5,7 @@ Liest Stellenanzeigen (Textdateien in data/jobs/), lässt ein LLM die
 Anforderungen als strukturiertes JSON extrahieren und zählt am Ende,
 welche Skills am häufigsten verlangt werden.
 
-Lernziele: Python-Grundlagen, LLM-API, strukturierte Ausgabe mit Pydantic.
+Lernziele: Python-Grundlagen, lokales LLM (Ollama), strukturierte Ausgabe mit Pydantic.
 Die Stellen mit "TODO" füllst DU aus.
 """
 
@@ -13,13 +13,10 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from dotenv import load_dotenv
 from pydantic import BaseModel
-import anthropic
 
-load_dotenv()  # liest ANTHROPIC_API_KEY aus der Datei .env (nie ins Repo!)
+import llm
 
-MODEL = "claude-sonnet-4-5"  # TODO: aktuelles Modell in der Anthropic-Doku nachschlagen
 JOBS_DIR = Path("data/jobs")
 
 
@@ -49,14 +46,9 @@ def baue_prompt(anzeigentext: str) -> str:
     raise NotImplementedError
 
 
-def analysiere(client: anthropic.Anthropic, anzeigentext: str) -> JobAnalyse:
+def analysiere(anzeigentext: str) -> JobAnalyse:
     """Schickt eine Anzeige ans LLM und gibt das validierte Ergebnis zurück."""
-    antwort = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        messages=[{"role": "user", "content": baue_prompt(anzeigentext)}],
-    )
-    rohtext = antwort.content[0].text
+    rohtext = llm.frage_modell(baue_prompt(anzeigentext))
     # TODO 3: rohtext als JSON parsen und mit JobAnalyse validieren
     #   (Tipp: JobAnalyse.model_validate_json(...)). Was passiert, wenn das LLM
     #   ```json ... ``` drumherum schreibt? Fang das ab.
@@ -70,12 +62,11 @@ def top_skills(analysen: list[JobAnalyse], n: int = 10) -> list[tuple[str, int]]
 
 
 def main() -> None:
-    client = anthropic.Anthropic()
     anzeigen = lade_anzeigen()
     analysen = []
     for name, text in anzeigen.items():
         print(f"Analysiere {name} ...")
-        analyse = analysiere(client, text)
+        analyse = analysiere(text)
         analysen.append(analyse)
         print(json.dumps(analyse.model_dump(), indent=2, ensure_ascii=False))
 

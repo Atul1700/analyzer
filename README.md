@@ -15,7 +15,7 @@ Ich bewerbe mich auf KI-Stellen und wollte datenbasiert herausfinden, welche Fä
 - [ ] Einfache Weboberfläche (Streamlit)
 
 ## Tech-Stack
-Python 3.12 · Anthropic API · Pydantic · python-dotenv
+Python 3.12 · Ollama (lokal, qwen3.5:4b) · Pydantic · python-dotenv
 
 ## Installation
 ```bash
@@ -24,7 +24,9 @@ cd analyzer
 python -m venv .venv
 # Windows: .venv\Scripts\activate   |   Mac/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # dann deinen API-Key in .env eintragen
+cp .env.example .env   # Modellname steht dort in MODEL
+# Ollama installieren (https://ollama.com), dann das Modell laden:
+ollama pull qwen3.5:4b
 python analyzer.py
 ```
 
