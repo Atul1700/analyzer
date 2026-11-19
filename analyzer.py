@@ -9,6 +9,7 @@ Lernziele: Python-Grundlagen, lokales LLM (Ollama), strukturierte Ausgabe mit Py
 Die Stellen mit "TODO" füllst DU aus.
 """
 
+import argparse
 import json
 import re
 import time
@@ -136,16 +137,52 @@ Gib NUR den Brieftext aus, ohne Einleitung, ohne Betreffzeile und ohne Kommentar
 
 def top_skills(analysen: list[JobAnalyse], n: int = 10) -> list[tuple[str, int]]:
     """Zählt, welche Muss-Skills am häufigsten vorkommen."""
-    # TODO 4: mit Counter die häufigsten muss_skills über alle Anzeigen zählen
-    raise NotImplementedError
+    # Counter zählt Vorkommen; update() addiert die Skills jeder Analyse dazu
+    zaehler = Counter()
+    for analyse in analysen:
+        zaehler.update(analyse.muss_skills)
+    # most_common(n) liefert die n häufigsten als (skill, anzahl), häufigste zuerst
+    return zaehler.most_common(n)
 
 
-def main() -> None:
-    anzeigen = lade_anzeigen()
-    lebenslauf = lade_lebenslauf()
+def baue_parser() -> argparse.ArgumentParser:
+    """Definiert die Kommandozeilen-Optionen (argparse gehört zur Standardbibliothek)."""
+    parser = argparse.ArgumentParser(
+        description=(
+            "Job-Anzeigen-Analyzer: liest Stellenanzeigen, lässt ein lokales Modell die "
+            "Anforderungen extrahieren, gleicht sie mit deinem Lebenslauf ab und schreibt "
+            "auf Wunsch einen Anschreiben-Entwurf."
+        ),
+        epilog=(
+            "Beispiele:\n"
+            "  python analyzer.py                              erste Anzeige aus data/jobs/\n"
+            "  python analyzer.py data/jobs/beispiel_01.txt    genau diese Anzeige\n"
+            "  python analyzer.py --ohne-anschreiben           nur Analyse, spart Zeit\n"
+            "  python analyzer.py --alle --ohne-anschreiben    alle Anzeigen + Top-Skills"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "anzeige",
+        nargs="?",  # '?' = optional: ohne Angabe ist der Wert None
+        type=Path,
+        help="Pfad zu einer Anzeige (.txt). Ohne Angabe wird die erste Anzeige in data/jobs/ genommen.",
+    )
+    parser.add_argument(
+        "--ohne-anschreiben",
+        action="store_true",  # Schalter: True, wenn angegeben, sonst False
+        help="Überspringt das Anschreiben (spart Zeit, nur die Analyse läuft).",
+    )
+    parser.add_argument(
+        "--alle",
+        action="store_true",
+        help="Analysiert alle Anzeigen in data/jobs/ und gibt am Ende die häufigsten Muss-Skills aus.",
+    )
+    return parser
 
-    # Schritt 3: nur die erste (Beispiel-)Anzeige analysieren und die Dauer messen
-    name, text = anzeigen[0]
+
+def verarbeite(name: str, text: str, lebenslauf: str, mit_anschreiben: bool) -> JobAnalyse:
+    """Analysiert eine Anzeige, gibt sie aus und schreibt optional das Anschreiben."""
     print(f"Analysiere {name} ...")
     start = time.perf_counter()
     analyse = analysiere(text, lebenslauf)
@@ -153,18 +190,40 @@ def main() -> None:
     print(json.dumps(analyse.model_dump(), indent=2, ensure_ascii=False))
     print(f"Dauer Analyse: {dauer:.1f} Sekunden")
 
-    print("\nErzeuge Anschreiben ...")
-    start = time.perf_counter()
-    anschreiben = schreibe_anschreiben(analyse, text, lebenslauf)
-    dauer = time.perf_counter() - start
-    print(anschreiben)
-    print(f"Dauer Anschreiben: {dauer:.1f} Sekunden")
+    if mit_anschreiben:
+        print("\nErzeuge Anschreiben ...")
+        start = time.perf_counter()
+        anschreiben = schreibe_anschreiben(analyse, text, lebenslauf)
+        dauer = time.perf_counter() - start
+        print(anschreiben)
+        print(f"Dauer Anschreiben: {dauer:.1f} Sekunden")
+    return analyse
 
-    # Alle Anzeigen + Top-Skills kommen in einem späteren Schritt:
-    # analysen = [analysiere(t, lebenslauf) for _, t in anzeigen]
-    # print("\nTop-Skills über alle Anzeigen:")
-    # for skill, anzahl in top_skills(analysen):
-    #     print(f"  {skill}: {anzahl}x")
+
+def main() -> None:
+    args = baue_parser().parse_args()
+    lebenslauf = lade_lebenslauf()
+    mit_anschreiben = not args.ohne_anschreiben
+
+    if args.alle and args.anzeige:
+        raise SystemExit("Entweder eine einzelne Anzeige ODER --alle angeben, nicht beides.")
+
+    if args.alle:
+        analysen = []
+        for name, text in lade_anzeigen():
+            analysen.append(verarbeite(name, text, lebenslauf, mit_anschreiben))
+            print("\n" + "=" * 60 + "\n")
+        print("Top-Skills über alle Anzeigen:")
+        for skill, anzahl in top_skills(analysen):
+            print(f"  {skill}: {anzahl}x")
+    elif args.anzeige:
+        if not args.anzeige.is_file():
+            raise SystemExit(f"Datei '{args.anzeige}' nicht gefunden.")
+        text = args.anzeige.read_text(encoding="utf-8")
+        verarbeite(args.anzeige.name, text, lebenslauf, mit_anschreiben)
+    else:
+        name, text = lade_anzeigen()[0]
+        verarbeite(name, text, lebenslauf, mit_anschreiben)
 
 
 if __name__ == "__main__":
