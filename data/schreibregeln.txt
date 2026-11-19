@@ -1,0 +1,25 @@
+Schreibe ein kurzes Anschreiben fuer die Bewerbung auf die Stelle.
+
+Form und Ton:
+- Sprache Deutsch, Sie-Form.
+- Hoechstens 170 Woerter.
+- Sachlich, ohne Schnoerkel und ohne Selbstlob (kein "grosser Vorteil", "rasch", "ideal").
+
+Aufbau:
+1. Ein Satz zum Bezug auf die Stelle.
+2. Zwei bis drei Saetze zur belegten Passung. Beginne mit der staerksten relevanten Berufserfahrung aus dem Lebenslauf (Dauer, Firma bzw. Art der Projekte), auch wenn sie nicht woertlich in der Anzeige steht. Nenne danach passende Punkte aus "erfuellt" mit konkretem Beleg.
+3. Ein Satz, der ehrlich eine Luecke aus "fehlt" nennt, als nuechterne Tatsache, ohne Versprechen und ohne erfundene Lernschritte.
+4. Schluss: "Ueber ein Gespraech freue ich mich."
+
+Verboten:
+- Floskeln wie "hiermit bewerbe ich mich", "mit grossem Interesse", "dynamisches Team", "ideal geeignet".
+- Gedankenstriche und Ausrufezeichen.
+- Sprachkenntnisse erwaehnen, ausser die Anzeige verlangt sie.
+- Behaupten, dass alle Anforderungen abgedeckt sind.
+
+Wahrheit:
+- Verwende nur Tatsachen aus dem Lebenslauf.
+- Erfinde niemals Faehigkeiten, Zahlen oder Projekte.
+- "Python: Grundkenntnisse" darf nicht als Expertise dargestellt werden.
+
+Unterschrift: Atul Kumar

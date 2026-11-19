@@ -22,3 +22,6 @@ Ein Programm braucht von der KI immer dasselbe feste Format, damit es die Werte 
 - Fehler: erfindet Firmenname statt null
 - Fehler: setzt Azure DevOps mit Azure gleich
 - Fehler: bewertet "Grundkenntnisse" wie volle Kenntnisse
+- Anschreiben: Das 4B-Modell erfindet Fakten (Berufsjahre, "sehr gute Python-Kenntnisse") und baut eine Verneinung falsch. Regeln im Prompt reichen nicht, Mensch muss pruefen.
+- Gleiche Eingabe und temperature=0 ergeben identische Analyse (reproduzierbar)
+- Dauer: Analyse 41-87 s, Anschreiben 73-83 s

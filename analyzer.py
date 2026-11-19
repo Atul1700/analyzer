@@ -21,6 +21,7 @@ import llm
 
 JOBS_DIR = Path("data/jobs")
 LEBENSLAUF_DATEI = Path("data/lebenslauf.txt")
+SCHREIBREGELN_DATEI = Path("data/schreibregeln.txt")
 
 
 class JobAnalyse(BaseModel):
@@ -108,6 +109,31 @@ def analysiere(anzeigentext: str, lebenslauf: str, versuche: int = 2) -> JobAnal
     )
 
 
+def schreibe_anschreiben(analyse: JobAnalyse, anzeigentext: str, lebenslauf: str) -> str:
+    """Erzeugt einen Anschreiben-Entwurf als Freitext und gibt nur den Brieftext zurueck."""
+    regeln = SCHREIBREGELN_DATEI.read_text(encoding="utf-8")
+    prompt = f"""{regeln}
+
+Die Analyse unten sagt, was der Lebenslauf abdeckt (erfuellt) und was fehlt.
+
+=== ANALYSE ===
+Jobtitel: {analyse.jobtitel}
+Firma: {analyse.firma or "nicht genannt"}
+erfuellt: {", ".join(analyse.erfuellt)}
+fehlt: {", ".join(analyse.fehlt)}
+
+=== STELLENANZEIGE ===
+{anzeigentext}
+
+=== LEBENSLAUF ===
+{lebenslauf}
+
+Gib NUR den Brieftext aus, ohne Einleitung, ohne Betreffzeile und ohne Kommentar.
+"""
+    # Freitext (kein Schema); 0.3 erlaubt etwas Variation im Ausdruck
+    return llm.frage_modell(prompt, temperature=0.3).strip()
+
+
 def top_skills(analysen: list[JobAnalyse], n: int = 10) -> list[tuple[str, int]]:
     """Zählt, welche Muss-Skills am häufigsten vorkommen."""
     # TODO 4: mit Counter die häufigsten muss_skills über alle Anzeigen zählen
@@ -125,7 +151,14 @@ def main() -> None:
     analyse = analysiere(text, lebenslauf)
     dauer = time.perf_counter() - start
     print(json.dumps(analyse.model_dump(), indent=2, ensure_ascii=False))
-    print(f"Dauer: {dauer:.1f} Sekunden")
+    print(f"Dauer Analyse: {dauer:.1f} Sekunden")
+
+    print("\nErzeuge Anschreiben ...")
+    start = time.perf_counter()
+    anschreiben = schreibe_anschreiben(analyse, text, lebenslauf)
+    dauer = time.perf_counter() - start
+    print(anschreiben)
+    print(f"Dauer Anschreiben: {dauer:.1f} Sekunden")
 
     # Alle Anzeigen + Top-Skills kommen in einem späteren Schritt:
     # analysen = [analysiere(t, lebenslauf) for _, t in anzeigen]
