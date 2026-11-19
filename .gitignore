@@ -221,3 +221,7 @@ __marimo__/
 
 # Persoenliche Daten - nie auf GitHub
 data/lebenslauf.txt
+
+# Echte Stellenanzeigen nie auf GitHub, nur die Beispiel-Anzeige
+data/jobs/*.txt
+!data/jobs/beispiel_01.txt

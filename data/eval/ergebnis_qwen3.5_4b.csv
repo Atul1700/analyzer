@@ -1,0 +1,11 @@
+datei,meine_passung,modell_passung,abweichung,dauer_s,fehler
+01_loytec_dotnet.txt,6,8,2,46.3,
+02_brz_elak.txt,5,8,3,76.7,
+03_consourcive_llm.txt,6,8,2,95.7,
+04_bond_junior_llm.txt,8,10,2,84.5,
+05_gvs_automation.txt,6,7,1,110.9,
+06_bhag_ki.txt,5,10,5,106.0,
+07_digicust_fde.txt,4,6,2,97.6,
+08_tsystems_ai_consultant.txt,3,4,1,154.8,
+09_hays_ai_architect.txt,2,6,4,145.3,
+10_unicredit_kundenberater.txt,0,4,4,111.9,
