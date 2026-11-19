@@ -1,0 +1,15 @@
+Max Mustermann (erfundene Vorlage)
+Musterstadt, max.mustermann@example.com
+
+Berufserfahrung
+2022-heute  Junior Python-Entwickler, Beispiel GmbH
+  - Entwicklung von REST-APIs mit FastAPI
+  - Datenauswertung mit pandas, SQL (PostgreSQL)
+2020-2022   Werkstudent IT-Support, Muster AG
+
+Ausbildung
+2017-2021   B.Sc. Informatik, Musteruniversitaet
+
+Skills
+Python, SQL, Git, Docker (Grundkenntnisse), Linux
+Sprachen: Deutsch (Muttersprache), Englisch (B2)

@@ -18,6 +18,7 @@ from pydantic import BaseModel
 import llm
 
 JOBS_DIR = Path("data/jobs")
+LEBENSLAUF_DATEI = Path("data/lebenslauf.txt")
 
 
 class JobAnalyse(BaseModel):
@@ -30,10 +31,24 @@ class JobAnalyse(BaseModel):
     seniority: str | None  # z. B. "Junior", "Mid", "Senior"
 
 
-def lade_anzeigen() -> dict[str, str]:
-    """Gibt {dateiname: text} für alle .txt-Dateien in data/jobs/ zurück."""
-    # TODO 1: alle *.txt-Dateien in JOBS_DIR einlesen (Tipp: JOBS_DIR.glob("*.txt"), .read_text(encoding="utf-8"))
-    raise NotImplementedError
+def lade_anzeigen() -> list[tuple[str, str]]:
+    """Gibt eine sortierte Liste von (dateiname, text) für alle .txt-Dateien in data/jobs/ zurück."""
+    if not JOBS_DIR.is_dir():
+        raise SystemExit(f"Ordner '{JOBS_DIR}' nicht gefunden. Lege ihn an und füge .txt-Anzeigen hinzu.")
+    dateien = sorted(JOBS_DIR.glob("*.txt"))
+    if not dateien:
+        raise SystemExit(f"Keine Anzeigen in '{JOBS_DIR}' gefunden. Lege dort mindestens eine .txt-Datei ab.")
+    return [(datei.name, datei.read_text(encoding="utf-8")) for datei in dateien]
+
+
+def lade_lebenslauf() -> str:
+    """Liest data/lebenslauf.txt (liegt nur lokal, steht in .gitignore)."""
+    if not LEBENSLAUF_DATEI.is_file():
+        raise SystemExit(
+            f"Datei '{LEBENSLAUF_DATEI}' nicht gefunden. "
+            "Kopiere data/lebenslauf_beispiel.txt nach data/lebenslauf.txt und trage deine Daten ein."
+        )
+    return LEBENSLAUF_DATEI.read_text(encoding="utf-8")
 
 
 def baue_prompt(anzeigentext: str) -> str:
@@ -62,17 +77,26 @@ def top_skills(analysen: list[JobAnalyse], n: int = 10) -> list[tuple[str, int]]
 
 
 def main() -> None:
+    # Schritt 2: nur das Einlesen testen (noch kein Modellaufruf)
     anzeigen = lade_anzeigen()
-    analysen = []
-    for name, text in anzeigen.items():
-        print(f"Analysiere {name} ...")
-        analyse = analysiere(text)
-        analysen.append(analyse)
-        print(json.dumps(analyse.model_dump(), indent=2, ensure_ascii=False))
+    print(f"{len(anzeigen)} Anzeige(n) gefunden:")
+    for name, text in anzeigen:
+        print(f"  {name}: {text[:100]!r}")
 
-    print("\nTop-Skills über alle Anzeigen:")
-    for skill, anzahl in top_skills(analysen):
-        print(f"  {skill}: {anzahl}x")
+    lebenslauf = lade_lebenslauf()
+    print(f"Lebenslauf: {len(lebenslauf)} Zeichen")
+
+    # Ursprünglicher Ablauf, kommt in späteren Schritten zurück:
+    # analysen = []
+    # for name, text in anzeigen:
+    #     print(f"Analysiere {name} ...")
+    #     analyse = analysiere(text)
+    #     analysen.append(analyse)
+    #     print(json.dumps(analyse.model_dump(), indent=2, ensure_ascii=False))
+    #
+    # print("\nTop-Skills über alle Anzeigen:")
+    # for skill, anzahl in top_skills(analysen):
+    #     print(f"  {skill}: {anzahl}x")
 
 
 if __name__ == "__main__":

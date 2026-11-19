@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Persoenliche Daten - nie auf GitHub
+data/lebenslauf.txt
