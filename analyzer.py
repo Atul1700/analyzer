@@ -10,10 +10,12 @@ Die Stellen mit "TODO" füllst DU aus.
 """
 
 import json
+import re
+import time
 from collections import Counter
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ValidationError
 
 import llm
 
@@ -29,6 +31,11 @@ class JobAnalyse(BaseModel):
     nice_to_have: list[str]
     remote_moeglich: bool | None
     seniority: str | None  # z. B. "Junior", "Mid", "Senior"
+    # Abgleich mit dem Lebenslauf. Reihenfolge ist Absicht: erst auflisten, dann bewerten.
+    erfuellt: list[str]  # Anforderungen der Anzeige, die der Lebenslauf abdeckt
+    fehlt: list[str]  # Anforderungen der Anzeige, die im Lebenslauf fehlen
+    passung: int = Field(ge=0, le=10)  # 0 = passt gar nicht, 10 = passt perfekt
+    begruendung: str  # 1-2 Sätze
 
 
 def lade_anzeigen() -> list[tuple[str, str]]:
@@ -51,23 +58,54 @@ def lade_lebenslauf() -> str:
     return LEBENSLAUF_DATEI.read_text(encoding="utf-8")
 
 
-def baue_prompt(anzeigentext: str) -> str:
+def baue_prompt(anzeigentext: str, lebenslauf: str) -> str:
     """Erstellt den Prompt für das LLM."""
-    # TODO 2: Schreibe einen klaren Prompt. Er soll:
-    #   - die Aufgabe erklären (Anforderungen extrahieren)
-    #   - NUR JSON nach dem Schema von JobAnalyse verlangen
-    #   - Skills normalisieren (z. B. "Python 3" -> "Python")
-    #   - den Anzeigentext enthalten
-    raise NotImplementedError
+    return f"""Du bist ein Karriereberater. Analysiere die folgende Stellenanzeige und gleiche sie mit dem Lebenslauf ab.
+
+Aufgaben:
+1. Extrahiere jobtitel, firma, muss_skills, nice_to_have, remote_moeglich und seniority aus der Anzeige.
+   Wenn etwas nicht in der Anzeige steht, nimm null (nichts erfinden).
+2. Normalisiere Skills auf den Kernnamen (z. B. "Python 3" -> "Python", "gute Kenntnisse in SQL" -> "SQL").
+3. Prüfe jede Anforderung der Anzeige gegen den Lebenslauf:
+   - erfuellt: Anforderungen, die der Lebenslauf belegt
+   - fehlt: Anforderungen, die im Lebenslauf nicht vorkommen
+4. passung: ganze Zahl von 0 (passt gar nicht) bis 10 (passt perfekt).
+5. begruendung: 1-2 Sätze auf Deutsch, warum diese Passung.
+
+Antworte NUR mit JSON nach dem vorgegebenen Schema, ohne weiteren Text.
+
+=== STELLENANZEIGE ===
+{anzeigentext}
+
+=== LEBENSLAUF ===
+{lebenslauf}
+"""
 
 
-def analysiere(anzeigentext: str) -> JobAnalyse:
-    """Schickt eine Anzeige ans LLM und gibt das validierte Ergebnis zurück."""
-    rohtext = llm.frage_modell(baue_prompt(anzeigentext))
-    # TODO 3: rohtext als JSON parsen und mit JobAnalyse validieren
-    #   (Tipp: JobAnalyse.model_validate_json(...)). Was passiert, wenn das LLM
-    #   ```json ... ``` drumherum schreibt? Fang das ab.
-    raise NotImplementedError
+def _json_extrahieren(rohtext: str) -> str:
+    """Entfernt einen ```json ... ```-Block um die Antwort, falls vorhanden."""
+    treffer = re.search(r"```(?:json)?\s*(.*?)```", rohtext, re.DOTALL)
+    return (treffer.group(1) if treffer else rohtext).strip()
+
+
+def analysiere(anzeigentext: str, lebenslauf: str, versuche: int = 2) -> JobAnalyse:
+    """Schickt Anzeige + Lebenslauf ans LLM und gibt das validierte Ergebnis zurück.
+
+    Bei ungültigem JSON wird einmal wiederholt (versuche=2), danach kommt eine Fehlermeldung.
+    """
+    prompt = baue_prompt(anzeigentext, lebenslauf)
+    schema = JobAnalyse.model_json_schema()
+    letzter_fehler = None
+    for _ in range(versuche):
+        rohtext = llm.frage_modell(prompt, schema=schema)
+        try:
+            return JobAnalyse.model_validate_json(_json_extrahieren(rohtext))
+        except ValidationError as fehler:
+            letzter_fehler = fehler
+    raise RuntimeError(
+        f"Das Modell hat nach {versuche} Versuchen kein gültiges JSON geliefert. "
+        f"Letzter Fehler: {letzter_fehler}"
+    )
 
 
 def top_skills(analysen: list[JobAnalyse], n: int = 10) -> list[tuple[str, int]]:
@@ -77,23 +115,20 @@ def top_skills(analysen: list[JobAnalyse], n: int = 10) -> list[tuple[str, int]]
 
 
 def main() -> None:
-    # Schritt 2: nur das Einlesen testen (noch kein Modellaufruf)
     anzeigen = lade_anzeigen()
-    print(f"{len(anzeigen)} Anzeige(n) gefunden:")
-    for name, text in anzeigen:
-        print(f"  {name}: {text[:100]!r}")
-
     lebenslauf = lade_lebenslauf()
-    print(f"Lebenslauf: {len(lebenslauf)} Zeichen")
 
-    # Ursprünglicher Ablauf, kommt in späteren Schritten zurück:
-    # analysen = []
-    # for name, text in anzeigen:
-    #     print(f"Analysiere {name} ...")
-    #     analyse = analysiere(text)
-    #     analysen.append(analyse)
-    #     print(json.dumps(analyse.model_dump(), indent=2, ensure_ascii=False))
-    #
+    # Schritt 3: nur die erste (Beispiel-)Anzeige analysieren und die Dauer messen
+    name, text = anzeigen[0]
+    print(f"Analysiere {name} ...")
+    start = time.perf_counter()
+    analyse = analysiere(text, lebenslauf)
+    dauer = time.perf_counter() - start
+    print(json.dumps(analyse.model_dump(), indent=2, ensure_ascii=False))
+    print(f"Dauer: {dauer:.1f} Sekunden")
+
+    # Alle Anzeigen + Top-Skills kommen in einem späteren Schritt:
+    # analysen = [analysiere(t, lebenslauf) for _, t in anzeigen]
     # print("\nTop-Skills über alle Anzeigen:")
     # for skill, anzahl in top_skills(analysen):
     #     print(f"  {skill}: {anzahl}x")

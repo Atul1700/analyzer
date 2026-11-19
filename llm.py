@@ -17,13 +17,18 @@ load_dotenv()  # liest MODEL aus der Datei .env
 MODEL = os.getenv("MODEL", "qwen3.5:4b")
 
 
-def frage_modell(prompt: str) -> str:
-    """Schickt den Prompt an das lokale Ollama-Modell und gibt nur den Antworttext zurueck."""
+def frage_modell(prompt: str, schema: dict | None = None) -> str:
+    """Schickt den Prompt an das lokale Ollama-Modell und gibt nur den Antworttext zurueck.
+
+    Mit schema (ein JSON-Schema als dict) erzwingt Ollama eine dazu passende JSON-Antwort.
+    """
     try:
         antwort = ollama.chat(
             model=MODEL,
             messages=[{"role": "user", "content": prompt}],
             think=False,  # kein "Denktext" vor der Antwort (stoert sonst das JSON-Parsen)
+            format=schema,  # None = freier Text, sonst strukturierte Ausgabe
+            options={"temperature": 0},  # stabile, wiederholbare Ergebnisse
         )
     except ConnectionError as fehler:
         raise RuntimeError(
