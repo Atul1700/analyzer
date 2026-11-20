@@ -21,7 +21,7 @@ import llm
 
 EVAL_DIR = Path("data/eval")
 BEWERTUNG_DATEI = EVAL_DIR / "meine_bewertung.csv"
-ERGEBNIS_SPALTEN = ["datei", "meine_passung", "modell_passung", "abweichung", "dauer_s", "fehler"]
+ERGEBNIS_SPALTEN = ["datei", "meine_passung", "modell_passung", "begruendung", "abweichung", "dauer_s", "fehler"]
 
 
 def berechne_kennzahlen(zeilen: list[dict]) -> dict:
@@ -73,6 +73,7 @@ def bewerte(zeile: dict, lebenslauf: str) -> dict:
         "datei": zeile["datei"],
         "meine_passung": zeile["meine_passung"],
         "modell_passung": None,
+        "begruendung": "",
         "abweichung": None,
         "dauer_s": None,
         "fehler": "",
@@ -82,6 +83,7 @@ def bewerte(zeile: dict, lebenslauf: str) -> dict:
         text = (analyzer.JOBS_DIR / zeile["datei"]).read_text(encoding="utf-8")
         analyse = analyzer.analysiere(text, lebenslauf)
         ergebnis["modell_passung"] = analyse.passung
+        ergebnis["begruendung"] = analyse.begruendung.replace("\n", " ")
         ergebnis["abweichung"] = analyse.passung - zeile["meine_passung"]
     except Exception as fehler:  # bewusst breit: ein Fehler soll den Lauf nicht abbrechen
         ergebnis["fehler"] = f"{type(fehler).__name__}: {fehler}".replace("\n", " ")

@@ -71,7 +71,15 @@ Aufgaben:
 3. Prüfe jede Anforderung der Anzeige gegen den Lebenslauf:
    - erfuellt: Anforderungen, die der Lebenslauf belegt
    - fehlt: Anforderungen, die im Lebenslauf nicht vorkommen
-4. passung: ganze Zahl von 0 (passt gar nicht) bis 10 (passt perfekt).
+4. passung: ganze Zahl von 0 bis 10. Skala:
+   - 0-1: völlig anderes Berufsfeld
+   - 2-3: wenige Überschneidungen, wesentliche Muss-Anforderungen fehlen
+   - 4-5: teilweise Überschneidung, mehrere Muss-Anforderungen fehlen
+   - 6-7: Kern erfüllt, mit einzelnen Lücken
+   - 8-9: fast alle Muss-Anforderungen erfüllt
+   - 10: nur wenn alle Muss-Anforderungen UND das Erfahrungsniveau passen
+   Fehlende Berufserfahrung oder Seniority senkt die Zahl.
+   Grundkenntnisse zählen nicht als erfüllt, wenn solide Kenntnisse verlangt sind.
 5. begruendung: 1-2 Sätze auf Deutsch, warum diese Passung.
 
 Antworte NUR mit JSON nach dem vorgegebenen Schema, ohne weiteren Text.

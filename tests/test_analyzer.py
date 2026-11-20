@@ -87,6 +87,12 @@ def test_baue_prompt_enthaelt_anzeige_und_lebenslauf():
     assert "LEBENSLAUF-ABC" in prompt
 
 
+def test_baue_prompt_enthaelt_skala_anker():
+    prompt = analyzer.baue_prompt("A", "L")
+    for anker in ["0-1:", "2-3:", "4-5:", "6-7:", "8-9:", "10:", "Seniority", "Grundkenntnisse"]:
+        assert anker in prompt
+
+
 # --- top_skills ---
 
 def test_top_skills_zaehlt_richtig():
